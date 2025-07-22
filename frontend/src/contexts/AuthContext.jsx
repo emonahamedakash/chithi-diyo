@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../hooks/useApi"; // Assuming useApi is defined in your hooks
+import axios from "axios";
+import { baseUrl } from "../../baseUrl";
+import { errorMsg } from "../helpers/notificationMessage";
 
 export const AuthContext = createContext();
 
@@ -13,8 +16,22 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const { id, token } = JSON.parse(sessionStorage.getItem("user_auth"));
       try {
-        const response = await api.get("/auth/me");
+        const response = await axios({
+          method: "get",
+          url: `${baseUrl}/auth/check-login-state`,
+          data: {
+            params: {
+              id,
+              token,
+            },
+          },
+        });
+        console.log("Response: ", response);
+        if (response.data.flag === "FAIL") {
+          return errorMsg(response.data.message);
+        }
         setUser(response.data.user);
         setIsAuthenticated(true);
       } catch (error) {

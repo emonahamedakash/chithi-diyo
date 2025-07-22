@@ -21,8 +21,7 @@ import "./App.css";
 
 function App() {
   return (
-    // <ErrorBoundary FallbackComponent={ErrorFallback}>
-    <>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       <BrowserRouter>
         <AuthProvider>
           {/* <MessageProvider> */}
@@ -72,11 +71,8 @@ function App() {
         </AuthProvider>
       </BrowserRouter>
       <ToastContainer position="top-center" autoClose={3000} />
-    </>
+    </ErrorBoundary>
   );
-  {
-    /* </ErrorBoundary> */
-  }
 }
 
 export default App;

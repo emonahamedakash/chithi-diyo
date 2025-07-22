@@ -4,24 +4,54 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useAuth } from "../../hooks/useAuth";
+import { baseUrl } from "../../../baseUrl";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { errorMsg } from "../../helpers/notificationMessage";
 
 export default function RegistrationForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  //Calling API
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(username, email, password);
-      navigate("/dashboard");
-      toast("Registration successful");
+      console.log("Calling api...");
+      const response = await axios({
+        method: "post",
+        url: `${baseUrl}/auth/register`,
+        data: {
+          user_name: username,
+          email,
+          password,
+        },
+      });
+      console.log("Response: ", response);
+      if (response.data.flag === "SUCCESS") {
+        toast.success({
+          autoClose: 1500,
+        });
+        errorMsg("Register Successfull...\n Redirecting to login page...");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      }
     } catch (error) {
-      toast(error.message || "Registration failed");
+      console.log("Error: ", error);
+      errorMsg(
+        error?.response.data.message
+          ? error.response.data.message
+          : error.message
+          ? error.message
+          : "Registration failed"
+      );
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,9 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { toast } from "react-toastify"; // ✅ react-toastify import
+import axios from "axios";
+import { baseUrl } from "../../../baseUrl";
+import { errorMsg } from "../../helpers/notificationMessage";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -19,9 +22,28 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email, password, rememberMe);
-      toast.success("Login successful. Welcome back!");
-      navigate("/dashboard");
+      const response = await axios({
+        method: "post",
+        url: `${baseUrl}/auth/login`,
+        data: {
+          email,
+          password,
+        },
+      });
+
+      console.log("Response: ", response);
+
+      if (response.data.flag === "SUCCESS") {
+        errorMsg("Login Successfull✅");
+        const data = {
+          token: response.data.user.token,
+          id: response.data.user.id,
+        };
+        sessionStorage.setItem("user_auth", JSON.stringify(data));
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
+      }
     } catch (error) {
       toast.error("Login failed: " + (error.message || "Unknown error"));
     } finally {

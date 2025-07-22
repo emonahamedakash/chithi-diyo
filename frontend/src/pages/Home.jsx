@@ -5,7 +5,7 @@ import { FaLink, FaEnvelopeOpenText, FaShieldAlt } from "react-icons/fa";
 
 export default function Home() {
   return (
-    <div className="container py-12">
+    <div className="container py-12 mx-auto">
       <div className="max-w-3xl mx-auto text-center">
         <h1 className="text-4xl font-bold mb-6">
           Send and Receive Anonymous Messages
