@@ -16,16 +16,17 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      if (!JSON.parse(sessionStorage.getItem("user_auth"))) {
+        return console.log("Not logged in");
+      }
       const { id, token } = JSON.parse(sessionStorage.getItem("user_auth"));
       try {
         const response = await axios({
           method: "get",
-          url: `${baseUrl}/auth/check-login-state`,
-          data: {
-            params: {
-              id,
-              token,
-            },
+          url: `${baseUrl}/user/check-login-state`,
+          params: {
+            id: id,
+            token: token,
           },
         });
         console.log("Response: ", response);
@@ -45,7 +46,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password, rememberMe) => {
     try {
-      const response = await api.post("/auth/login", { email, password });
+      const response = await api.post("/user/login", { email, password });
       setUser(response.data.user);
       setIsAuthenticated(true);
 
