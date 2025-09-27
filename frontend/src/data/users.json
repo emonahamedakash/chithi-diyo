@@ -1,0 +1,44 @@
+{
+    "users": [
+        {
+            "id": "user_001",
+            "username": "alex_johnson",
+            "displayName": "Alex Johnson",
+            "email": "alex.johnson@email.com",
+            "createdAt": "2024-01-15T10:30:00Z",
+            "isActive": true,
+            "profileColor": "#3B82F6",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=alex"
+        },
+        {
+            "id": "user_002",
+            "username": "sarah_m",
+            "displayName": "Sarah Miller",
+            "email": "sarah.m@email.com",
+            "createdAt": "2024-01-20T14:15:00Z",
+            "isActive": true,
+            "profileColor": "#EC4899",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah"
+        },
+        {
+            "id": "user_003",
+            "username": "mike_chen",
+            "displayName": "Mike Chen",
+            "email": "mike.chen@email.com",
+            "createdAt": "2024-02-01T09:45:00Z",
+            "isActive": true,
+            "profileColor": "#10B981",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=mike"
+        },
+        {
+            "id": "user_004",
+            "username": "emma_wilson",
+            "displayName": "Emma Wilson",
+            "email": "emma.wilson@email.com",
+            "createdAt": "2024-02-10T16:20:00Z",
+            "isActive": false,
+            "profileColor": "#8B5CF6",
+            "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=emma"
+        }
+    ]
+}

@@ -37,6 +37,7 @@ app.get("/health", (req, res) => {
 
 require("./routes/auth.routes")(app);
 require("./routes/link.routes")(app);
+require("./routes/message.routes")(app);
 
 const PORT = process.env.PORT || 5050;
 

@@ -22,7 +22,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Protected Routes */}
-          <Route path="/" element={<Dashboard />} />
+          <Route index element={<Dashboard />} />
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/inbox/details" element={<MessageDetails />} />
           <Route path="/create-link" element={<CreateMessageLink />} />
