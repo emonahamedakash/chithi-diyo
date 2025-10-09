@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.43, for Win64 (x86_64)
 --
 -- Host: localhost    Database: chithi_diyo
 -- ------------------------------------------------------
--- Server version	8.4.5
+-- Server version	8.0.43
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -33,7 +33,7 @@ CREATE TABLE `message_links` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `link_UNIQUE` (`link`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,6 +42,7 @@ CREATE TABLE `message_links` (
 
 LOCK TABLES `message_links` WRITE;
 /*!40000 ALTER TABLE `message_links` DISABLE KEYS */;
+INSERT INTO `message_links` VALUES (1,1,'msg-emon-2025','Emon এর জন্য Anonymous Message',1,'2025-09-01 10:20:00','2025-09-12 11:00:00'),(2,2,'msg-shakib-2025','Shakib কে Anonymous Message পাঠান',1,'2025-09-05 12:50:00','2025-09-12 14:15:00'),(3,3,'msg-nusrat-2025','Nusrat এর জন্য Message Box',1,'2025-08-28 08:40:00','2025-09-10 18:00:00'),(4,4,'msg-mehedi-2025','Mehedi কে মেসেজ দিন',1,'2025-09-03 20:30:00','2025-09-09 11:15:00'),(5,5,'msg-tanjila-2025','Tanjila এর ইনবক্স',0,'2025-09-15 09:10:00','2025-09-20 18:20:00');
 /*!40000 ALTER TABLE `message_links` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-22 13:35:19
+-- Dump completed on 2025-10-10  2:45:42
