@@ -59,8 +59,6 @@ const register = async (req, res) => {
 };
 // Login
 const login = async (req, res) => {
-  console.log("Hit Login Endpoint");
-
   if (!req.body) {
     return res.status(400).json({
       flag: "FAIL",
@@ -69,7 +67,6 @@ const login = async (req, res) => {
   }
 
   try {
-    console.log("Req.body: ", req.body);
     const { email, password } = req.body;
 
     // Validate input
@@ -83,12 +80,10 @@ const login = async (req, res) => {
     // Find user in DB
     const user = await db("users").where("email", email).select("*").first();
 
-    console.log("Response from DB: ", user);
-
     if (!user) {
-      return res.status(401).json({
+      return res.status(404).json({
         flag: "FAIL",
-        message: "Invalid credentials.",
+        message: "No user exist",
       });
     }
 
@@ -104,15 +99,11 @@ const login = async (req, res) => {
       process.env.JWT_SECRET || "your-secret-key"
     );
 
-    // FIXED: Proper token insertion syntax
     const updateResult = await db("users")
       .where("id", user.id)
       .update({ token: token });
 
-    console.log("Update result: ", updateResult);
-
     if (updateResult === 0) {
-      // Check if update was successful
       throw new Error("Failed to update user token");
     }
 

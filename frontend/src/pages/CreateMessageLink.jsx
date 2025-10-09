@@ -1,27 +1,27 @@
-import React, { useState, useRef, useEffect } from "react";
-import { toast } from "react-toastify";
+import React, { useState, useContext } from "react";
+import { toast } from "sonner";
 import axios from "axios";
 import { FaCopy, FaShare, FaSpinner } from "react-icons/fa";
 import Layout from "../components/layouts/Layout";
+import { AuthContext } from "../contexts/AuthContext";
 
 const CreateMessageLink = () => {
   const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
 
-  const { id } = JSON.parse(sessionStorage.getItem("user_auth"));
+  const { userId } = useContext(AuthContext);
 
   const handleGenerateLink = async () => {
     console.log("Button clicked");
     setIsLoading(true);
 
     try {
+      console.log("try block started.")
       // API call to generate link
-      const response = await axios({
-        method: "POST",
-        url: `${baseUrl}/links/create`,
-        data: {
-          user_id: id,
+      const response = await axios.post(`${baseUrl}/api/links/create`, {
+        params: {
+          user_id: userId,
           title: title,
         },
       });
@@ -59,9 +59,7 @@ const CreateMessageLink = () => {
           toast.info("Share action was cancelled");
         });
     } else {
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        `Check out my Chithi Diyo message: ${title}`
-      )}&url=${encodeURIComponent(generatedLink)}`;
+      const shareUrl = `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(generatedLink)}&quote=${encodeURIComponent(`Check out my Chithi Diyo message: ${title}`)}`;
       window.open(shareUrl, "_blank");
     }
   };
@@ -94,8 +92,8 @@ const CreateMessageLink = () => {
               onClick={handleGenerateLink}
               disabled={isLoading || !title.trim()}
               className={`flex items-center px-6 py-2 rounded-lg text-white font-medium ${isLoading || !title.trim()
-                  ? "bg-gray-400"
-                  : "bg-blue-600 hover:bg-blue-700"
+                ? "bg-gray-400"
+                : "bg-blue-600 hover:bg-blue-700"
                 }`}
             >
               {isLoading ? (

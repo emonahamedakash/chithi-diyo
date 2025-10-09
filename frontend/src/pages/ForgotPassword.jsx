@@ -8,7 +8,7 @@ import {
   FaSpinner,
   FaLock,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import axios from "axios";
 import { baseUrl } from "../../baseUrl";
 

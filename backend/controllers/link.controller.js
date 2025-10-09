@@ -5,7 +5,6 @@ const createLink = async (req, res) => {
   try {
     const { user_id, title } = req.body;
 
-    console.log("Hit create link endpoint");
     const currentDate = moment();
 
     // Generate a random 8-character string for the link

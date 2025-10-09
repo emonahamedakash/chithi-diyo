@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -6,16 +6,14 @@ import {
   FaUser,
   FaArrowRight,
   FaSpinner,
-  FaGoogle,
   FaFacebook,
   FaEye,
   FaEyeSlash,
 } from "react-icons/fa";
-import { FiImage } from "react-icons/fi";
-import { toast } from "react-toastify";
 import axios from "axios";
-import { errorMsg } from "../helpers/notificationMessage";
+import { toast } from "sonner"
 import { baseUrl } from "../../baseUrl";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,6 +23,8 @@ export default function Login() {
   const [socialLoading, setSocialLoading] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const { setUserId } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,30 +40,36 @@ export default function Login() {
       });
 
       if (response.data.flag === "SUCCESS") {
-        errorMsg("Login Successful ✅");
+        toast({
+          title: "Login Successful",
+          description: "You have been logged in successfully ✅",
+        });
         const data = {
           token: response.data.user.token,
           id: response.data.user.id,
         };
+        setUserId(response.data.user.id);
         sessionStorage.setItem("user_auth", JSON.stringify(data));
         window.location.href = "/";
       }
     } catch (error) {
-      toast.error("Login failed: " + (error.message || "Unknown error"));
+      console.log("err from catch block:", error);
+      console.log("status code from catch block:", error.response.status);
+      if (error.response?.status == 401) {
+        toast.error(error.response?.data?.message || "Wrong Password");
+      } else if (error.response?.status == 404) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
+      else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleSocialLogin = (provider) => {
-    setSocialLoading(provider);
-    // Simulate social login API call
-    setTimeout(() => {
-      toast.info(`Redirecting to ${provider} authentication...`);
-      setSocialLoading(null);
-      // In a real app, you would redirect to the provider's auth endpoint
-      // window.location.href = `${baseUrl}/auth/${provider}`;
-    }, 1500);
+    console.log("trying to login with facebook");
   };
 
   return (
@@ -217,24 +223,7 @@ export default function Login() {
           </div>
 
           {/* Social Login Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleSocialLogin("google")}
-              disabled={socialLoading === "google"}
-              className="hover:cursor-pointer w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
-            >
-              {socialLoading === "google" ? (
-                <FaSpinner className="animate-spin h-5 w-5 text-blue-600" />
-              ) : (
-                <>
-                  <FaGoogle className="h-5 w-5 text-red-600 mr-2" />
-                  Google
-                </>
-              )}
-            </motion.button>
-
+          <div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

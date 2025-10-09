@@ -9,14 +9,11 @@ import {
   FaEyeSlash,
   FaArrowRight,
   FaSpinner,
-  FaGoogle,
   FaFacebook,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner"
 import axios from "axios";
 import { baseUrl } from "../../baseUrl";
-import { errorMsg } from "../helpers/notificationMessage";
-
 export default function RegistrationForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -40,35 +37,26 @@ export default function RegistrationForm() {
         },
       });
 
-      if (response.data.flag === "SUCCESS") {
-        toast.success("Registration Successful ✅", { autoClose: 1500 });
+      if (response.data?.flag === "SUCCESS" && response?.status === 201) {
+        toast.success("Registration Successful ✅");
         errorMsg("Register Successful...\n Redirecting to login page...");
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       }
     } catch (error) {
-      errorMsg(
-        error?.response?.data?.message
-          ? error.response.data.message
-          : error.message
-          ? error.message
-          : "Registration failed"
-      );
+      if (error.response.status === 409) {
+        toast.error(error.response?.data?.message || "User already exist.");
+      } else {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleSocialRegister = (provider) => {
-    setSocialLoading(provider);
-    // Simulate social registration API call
-    setTimeout(() => {
-      toast.info(`Redirecting to ${provider} authentication...`);
-      setSocialLoading(null);
-      // In a real app, you would redirect to the provider's auth endpoint
-      // window.location.href = `${baseUrl}/auth/${provider}`;
-    }, 1500);
+    console.log("trying to register with facebook");
   };
 
   return (
@@ -224,23 +212,8 @@ export default function RegistrationForm() {
           </div>
 
           {/* Social Registration Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleSocialRegister("google")}
-              disabled={socialLoading === "google"}
-              className="cursor-pointer w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
-            >
-              {socialLoading === "google" ? (
-                <FaSpinner className="animate-spin h-5 w-5 text-blue-600" />
-              ) : (
-                <>
-                  <FaGoogle className="h-5 w-5 text-red-600 mr-2" />
-                  Google
-                </>
-              )}
-            </motion.button>
+          <div>
+
 
             <motion.button
               whileHover={{ scale: 1.05 }}

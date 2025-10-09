@@ -1,5 +1,7 @@
 // pages/Dashboard.jsx
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { baseUrl } from "../../baseUrl";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -16,57 +18,37 @@ const Dashboard = () => {
   const [activeCarousel, setActiveCarousel] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with actual API calls
-  const [stats, setStats] = useState({
-    totalLinks: 0,
-    totalMessages: 0,
-  });
-
+  const [totalLinks, setTotalLinks] = useState(0);
+  const [totalMessages, setTotalMessages] = useState(0);
+  const [recentMessages, setRecentMessages] = useState([]);
   const [recentLinks, setRecentLinks] = useState([]);
-  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    // Simulate API loading
-    setTimeout(() => {
-      setStats({
-        totalLinks: 24,
-        totalMessages: 156,
-      });
-      setRecentLinks([
-        {
-          id: 1,
-          name: "My Public Profile",
-          url: "chithidiyo.me/john",
-          createdAt: "2023-06-15",
-        },
-        {
-          id: 2,
-          name: "Feedback Link",
-          url: "chithidiyo.me/feedback",
-          createdAt: "2023-06-10",
-        },
-      ]);
-      setMessages([
-        {
-          id: 1,
-          content: "You're doing an amazing job! Keep up the great work!",
-          receivedAt: "2 hours ago",
-        },
-        {
-          id: 2,
-          content:
-            "I really appreciate your help last week. You saved my project!",
-          receivedAt: "1 day ago",
-        },
-        {
-          id: 3,
-          content: "Just wanted to say hi and that I admire your work!",
-          receivedAt: "3 days ago",
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
+    getDashboardData();
   }, []);
+
+  const getDashboardData = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}/fetch-dashboard-data`,
+        {
+          params: { user_id: 1 }
+        }
+      )
+
+      console.log(response);
+
+      if (response.status === 200) {
+        setTotalLinks(response.data.total_links);
+        setTotalMessages(response.data.total_messages);
+        setRecentMessages(response.data.recent_messages);
+        setRecentLinks(response.data.recent_links);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const nextCarousel = () => {
     setActiveCarousel((prev) => (prev === messages.length - 1 ? 0 : prev + 1));
@@ -92,7 +74,7 @@ const Dashboard = () => {
         </p>
       </motion.div>
 
-      {/* Stats Cards */}
+      {/* Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -107,7 +89,7 @@ const Dashboard = () => {
             <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
           ) : (
             <p className="text-2xl md:text-3xl font-bold text-gray-800">
-              {stats.totalLinks}
+              {totalLinks}
             </p>
           )}
         </motion.div>
@@ -124,7 +106,7 @@ const Dashboard = () => {
             <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
           ) : (
             <p className="text-2xl md:text-3xl font-bold text-gray-800">
-              {stats.totalMessages}
+              {totalMessages}
             </p>
           )}
         </motion.div>
@@ -162,19 +144,19 @@ const Dashboard = () => {
         </h3>
         {loading ? (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 h-24 md:h-32 animate-pulse"></div>
-        ) : recentLinks.length > 0 ? (
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6">
+        ) : recentLinks.length > 0 ? recentLinks.map((link) => {
+          return (<div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6" key={link.id}>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 md:mb-4">
               <div className="mb-2 md:mb-0">
                 <h4 className="font-medium text-gray-900">
-                  {recentLinks[0].name}
+                  {link.title}
                 </h4>
                 <p className="text-blue-600 text-sm md:text-base">
-                  {recentLinks[0].url}
+                  {link.link}
                 </p>
               </div>
               <span className="text-xs md:text-sm text-gray-500">
-                Created: {recentLinks[0].createdAt}
+                Created: {link.created_at}
               </span>
             </div>
             <div className="border-t border-gray-200 pt-3 md:pt-4">
@@ -184,7 +166,7 @@ const Dashboard = () => {
 
               {/* Messages Carousel */}
               <div className="relative overflow-hidden h-32 md:h-40">
-                {messages.map((message, index) => (
+                {recentMessages.map((message, index) => (
                   <motion.div
                     key={message.id}
                     initial={{ opacity: 0 }}
@@ -222,7 +204,8 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div>);
+        }
         ) : (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 text-center text-sm md:text-base text-gray-500">
             You haven't created any links yet

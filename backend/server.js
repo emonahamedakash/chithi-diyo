@@ -20,6 +20,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(morgan("dev"));
 // Serve the uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -38,6 +39,7 @@ app.get("/health", (req, res) => {
 require("./routes/auth.routes")(app);
 require("./routes/link.routes")(app);
 require("./routes/message.routes")(app);
+require("./routes/dashboard.routes")(app);
 
 const PORT = process.env.PORT || 5050;
 
