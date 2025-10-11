@@ -11,8 +11,8 @@ const app = express();
 // Update CORS configuration: specify exact origin instead of *
 app.use(
   cors({
-    //origin: "http://localhost:5173",
-    origin: "*",
+    origin: "http://localhost:5173",
+    // origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   })
@@ -40,6 +40,7 @@ require("./routes/auth.routes")(app);
 require("./routes/link.routes")(app);
 require("./routes/message.routes")(app);
 require("./routes/dashboard.routes")(app);
+require("./routes/profile.routes")(app);
 
 const PORT = process.env.PORT || 5050;
 

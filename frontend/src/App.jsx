@@ -9,8 +9,10 @@ import NotFound from "./pages/NotFound";
 import Inbox from "./pages/Inbox";
 import "./App.css";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import CreateMessageLink from "./pages/CreateMessageLink";
 import ProfilePage from "./pages/ProfilePage";
+
 
 function App() {
   const id = JSON.parse(sessionStorage.getItem("user_auth"));
@@ -40,6 +42,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

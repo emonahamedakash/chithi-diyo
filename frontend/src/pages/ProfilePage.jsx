@@ -1,88 +1,104 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { toast } from "sonner"
 import { motion } from "framer-motion";
+import axios from "axios";
+import { AuthContext } from '../contexts/AuthContext';
 import {
   FaUser,
   FaEnvelope,
   FaLock,
   FaLink,
   FaInbox,
-  FaGoogle,
   FaFacebook,
   FaCheck,
   FaTimes,
   FaEdit,
 } from "react-icons/fa";
 import Layout from "../components/layouts/Layout";
+import { baseUrl } from "../../baseUrl";
 
 const ProfilePage = () => {
-  const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
+  const [userDetails, setuserDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editLoading, setEditLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
+  const [totalReceivedMessageCount, setTotalReceivedMessageCount] = useState(0);
+  const [totalCreatedLinkCount, setTotalCreatedLinkCount] = useState(0);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newUserName, setNewUserName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Mock data - replace with actual API calls
+  const { userId } = useContext(AuthContext);
+
   useEffect(() => {
-    setTimeout(() => {
-      setUserData({
-        username: "test",
-        email: "test@example.com",
-        socialConnections: {
-          google: true,
-          facebook: false,
-        },
-        stats: {
-          receivedMessages: 42,
-          createdLinks: 7,
-        },
-      });
-      setFormData({
-        username: "test",
-        email: "test@example.com",
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setLoading(false);
-    }, 800);
+    fetchDetails();
+    getDashboardData();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const fetchDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${baseUrl}/profile/fetch-details/?user_id=${userId}`)
+      console.log("response from getDetails: ", response);
+      if (response.status === 200) {
+        setuserDetails(response.data.details || {});
+        setCurrentPassword(response.data.details.password || "");
+      }
+      if (response.status === 404) {
+        setuserDetails({});
+        toast.error("No user found");
+      }
+      if (response.status === 500) {
+        toast.error("Something went wrong");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const handleSaveChanges = () => {
-    // Add password validation and API call here
+  const getDashboardData = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}/fetch-dashboard-data`,
+        {
+          params: { user_id: 1 }
+        }
+      )
+
+      console.log(response);
+
+      if (response.status === 200) {
+        setTotalReceivedMessageCount(response.data.total_messages);
+        setTotalCreatedLinkCount(response.data.total_links);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleSaveChanges = async () => {
+    try {
+      setEditLoading(true);
+      const response = await axios.post(`${baseUrl}/profile/edit`, {
+        user_id: userId,
+        new_user_name: newUserName,
+        new_password: newPassword
+      })
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setEditLoading(false);
+    }
     setEditMode(false);
     toast.success("Profile updated successfully!");
   };
 
-  const toggleSocialConnection = (provider) => {
-    setUserData((prev) => ({
-      ...prev,
-      socialConnections: {
-        ...prev.socialConnections,
-        [provider]: !prev.socialConnections[provider],
-      },
-    }));
-    // In a real app, you would call API to connect/disconnect
-    const action = userData.socialConnections[provider]
-      ? "disconnected"
-      : "connected";
-    toast.info(
-      `${provider.charAt(0).toUpperCase() + provider.slice(1)} ${action}`
-    );
+  const toggleSocialConnection = (facebookStatus) => {
+    console.log("Facebook button clicked")
   };
 
   if (loading) {
@@ -114,8 +130,8 @@ const ProfilePage = () => {
             >
               <FaUser className="h-12 w-12" />
             </motion.div>
-            <h1 className="text-2xl font-bold">{userData.username}</h1>
-            <p className="text-blue-100">{userData.email}</p>
+            <h1 className="text-2xl font-bold">{userDetails.user_name}</h1>
+            <p className="text-blue-100">{userDetails.email}</p>
           </div>
 
           <div className="p-6 md:p-8">
@@ -126,6 +142,7 @@ const ProfilePage = () => {
               transition={{ delay: 0.2 }}
               className="mb-8"
             >
+
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800">
                   Account Information
@@ -154,7 +171,7 @@ const ProfilePage = () => {
                   </button>
                 )}
               </div>
-
+              {/* Edit form */}
               <div className="space-y-4">
                 <div className="flex items-center">
                   <FaUser className="text-gray-500 mr-3" />
@@ -162,12 +179,12 @@ const ProfilePage = () => {
                     <input
                       type="text"
                       name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
+                      value={userDetails.user_name}
+                      onChange={(e) => setNewUserName(e.target.value)}
                       className="flex-1 p-2 border border-gray-300 rounded-lg"
                     />
                   ) : (
-                    <p className="text-gray-700">{userData.username}</p>
+                    <p className="text-gray-700">{userDetails.user_name}</p>
                   )}
                 </div>
 
@@ -177,12 +194,12 @@ const ProfilePage = () => {
                     <input
                       type="email"
                       name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
+                      value={userDetails.email}
+                      disabled
+                      className="flex-1 p-2 "
                     />
                   ) : (
-                    <p className="text-gray-700">{userData.email}</p>
+                    <p className="text-gray-700">{userDetails.email}</p>
                   )}
                 </div>
 
@@ -194,8 +211,6 @@ const ProfilePage = () => {
                         type="password"
                         name="currentPassword"
                         placeholder="Current Password"
-                        value={formData.currentPassword}
-                        onChange={handleInputChange}
                         className="flex-1 p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -205,8 +220,8 @@ const ProfilePage = () => {
                         type="password"
                         name="newPassword"
                         placeholder="New Password"
-                        value={formData.newPassword}
-                        onChange={handleInputChange}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                         className="flex-1 p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -216,8 +231,8 @@ const ProfilePage = () => {
                         type="password"
                         name="confirmPassword"
                         placeholder="Confirm New Password"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         className="flex-1 p-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -236,43 +251,35 @@ const ProfilePage = () => {
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Social Connections
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {["google", "facebook"].map((provider) => (
-                  <div
-                    key={provider}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
-                  >
-                    <div className="flex items-center">
-                      {provider === "google" && (
-                        <FaGoogle className="text-red-500 mr-3" />
-                      )}
-                      {provider === "facebook" && (
-                        <FaFacebook className="text-blue-600 mr-3" />
-                      )}
-
-                      <span className="capitalize">{provider}</span>
-                    </div>
-                    {userData.socialConnections[provider] ? (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => toggleSocialConnection(provider)}
-                        className="flex items-center px-3 py-1 bg-red-50 text-red-600 rounded-lg text-sm"
-                      >
-                        <FaTimes className="mr-1" /> Disconnect
-                      </motion.button>
-                    ) : (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => toggleSocialConnection(provider)}
-                        className="flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm"
-                      >
-                        <FaCheck className="mr-1" /> Connect
-                      </motion.button>
-                    )}
+              <div className="">
+                <div
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <FaFacebook className="text-blue-600 mr-3" />
+                    <span className="capitalize">Facebook</span>
                   </div>
-                ))}
+                  {userDetails.facebook == 1 ? (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => toggleSocialConnection("provider")}
+                      className="flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm"
+                    >
+                      <FaCheck className="mr-1" /> Connected
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => toggleSocialConnection("provider")}
+                      className="flex items-center px-3 py-1 bg-red-50 text-red-600 rounded-lg text-sm"
+                    >
+                      <FaTimes className="mr-1" /> Disconnected
+                    </motion.button>
+                  )
+                  }
+                </div>
               </div>
             </motion.div>
 
@@ -291,7 +298,7 @@ const ProfilePage = () => {
                       Received Messages
                     </h3>
                     <p className="text-2xl font-bold text-gray-800">
-                      {userData.stats.receivedMessages}
+                      {totalReceivedMessageCount}
                     </p>
                   </div>
                 </div>
@@ -304,7 +311,7 @@ const ProfilePage = () => {
                       Created Links
                     </h3>
                     <p className="text-2xl font-bold text-gray-800">
-                      {userData.stats.createdLinks}
+                      {totalCreatedLinkCount}
                     </p>
                   </div>
                 </div>

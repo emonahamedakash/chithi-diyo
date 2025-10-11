@@ -1,11 +1,12 @@
 const db = require("../config/db");
-const { moment } = require("moment");
+const moment = require("moment");
 
 const createLink = async (req, res) => {
   try {
     const { user_id, title } = req.body;
 
-    const currentDate = moment();
+    // Convert moment to string format before using in query
+    const currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
 
     // Generate a random 8-character string for the link
     const generateRandomString = (length = 8) => {
@@ -48,18 +49,20 @@ const createLink = async (req, res) => {
     }
 
     // Insert the new link
-    const [link] = await db("message_links")
+    const [linkId] = await db("message_links")
       .insert({
-        user_id,
-        title,
+        user_id: user_id,
+        title: title,
         link: generatedLink,
-        isActive: 1,
-        createdAt: currentDate,
+        is_active: 1,
+        created_at: currentDate, // Now this is a string, not a Moment object
       })
-      .returning("*");
+      .returning('id'); // Return the inserted ID
+
+    console.log("Inserted link ID:", linkId);
 
     res.status(201).json({
-      data: link,
+      data: { id: linkId, link: generatedLink },
       message: "Link Created Successfully",
       generatedLink: generatedLink,
     });

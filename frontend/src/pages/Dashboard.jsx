@@ -6,8 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FaPlus,
-  FaChevronLeft,
-  FaChevronRight,
   FaInbox,
 } from "react-icons/fa";
 import { FiMessageSquare } from "react-icons/fi";
@@ -51,11 +49,11 @@ const Dashboard = () => {
   }
 
   const nextCarousel = () => {
-    setActiveCarousel((prev) => (prev === messages.length - 1 ? 0 : prev + 1));
+    setActiveCarousel((prev) => (prev === recentMessages.length - 1 ? 0 : prev + 1));
   };
 
   const prevCarousel = () => {
-    setActiveCarousel((prev) => (prev === 0 ? messages.length - 1 : prev - 1));
+    setActiveCarousel((prev) => (prev === 0 ? recentMessages.length - 1 : prev - 1));
   };
 
   return (
@@ -132,80 +130,100 @@ const Dashboard = () => {
         </motion.button>
       </motion.div>
 
-      {/* Recent Link Section */}
+      {/* Recent Messages Section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mb-6 md:mb-8"
+      >
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h3 className="text-lg md:text-xl font-semibold text-gray-800">
+            Recent Messages
+          </h3>
+          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+            Total: {totalMessages || 0}
+          </span>
+        </div>
+        {loading ? (
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 h-24 md:h-32 animate-pulse"></div>
+        ) : recentMessages && recentMessages.length > 0 ? (
+          <div className="space-y-4">
+            {recentMessages.map((message) => (
+              <div
+                key={message.id}
+                className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6"
+              >
+                <div className="flex items-start mb-3">
+                  <FiMessageSquare className={`mt-0.5 mr-2 flex-shrink-0 ${message.is_read ? 'text-green-500' : 'text-blue-500'}`} />
+                  <p className="text-gray-800 text-sm md:text-base line-clamp-3">
+                    {message.message}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center text-xs md:text-sm text-gray-500">
+                  <span>Received: {new Date(message.created_at).toLocaleDateString()}</span>
+                  <div className="flex items-center space-x-4">
+                    <span className={`px-2 py-1 rounded ${message.is_read ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                      {message.is_read ? 'Read' : 'Unread'}
+                    </span>
+                    <span>Clicks: {message.click_count}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 text-center text-sm md:text-base text-gray-500">
+            No recent messages
+          </div>
+        )}
+      </motion.div>
+
+      {/* Recent Links Section */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7 }}
         className="mb-6 md:mb-8"
       >
-        <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">
-          Your Recent Link
-        </h3>
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h3 className="text-lg md:text-xl font-semibold text-gray-800">
+            Your Recent Links
+          </h3>
+          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+            Total: {totalLinks || 0}
+          </span>
+        </div>
         {loading ? (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 h-24 md:h-32 animate-pulse"></div>
-        ) : recentLinks.length > 0 ? recentLinks.map((link) => {
-          return (<div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6" key={link.id}>
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 md:mb-4">
-              <div className="mb-2 md:mb-0">
-                <h4 className="font-medium text-gray-900">
-                  {link.title}
-                </h4>
-                <p className="text-blue-600 text-sm md:text-base">
-                  {link.link}
-                </p>
+        ) : recentLinks && recentLinks.length > 0 ? (
+          <div className="space-y-4">
+            {recentLinks.map((link) => (
+              <div
+                key={link.id}
+                className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6"
+              >
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 md:mb-4">
+                  <div className="mb-2 md:mb-0 flex-1">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      {link.title}
+                    </h4>
+                    <p className="text-blue-600 text-sm md:text-base break-all hover:text-blue-800 cursor-pointer">
+                      {link.link}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start md:items-end space-y-1">
+                    <span className="text-xs md:text-sm text-gray-500">
+                      Created: {new Date(link.created_at).toLocaleDateString()}
+                    </span>
+                    <span className={`text-xs px-2 py-1 rounded ${link.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {link.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs md:text-sm text-gray-500">
-                Created: {link.created_at}
-              </span>
-            </div>
-            <div className="border-t border-gray-200 pt-3 md:pt-4">
-              <h5 className="text-xs md:text-sm font-medium text-gray-500 mb-2 md:mb-3">
-                Recent Messages
-              </h5>
-
-              {/* Messages Carousel */}
-              <div className="relative overflow-hidden h-32 md:h-40">
-                {recentMessages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0 }}
-                    animate={{
-                      opacity: index === activeCarousel ? 1 : 0,
-                      x: `${(index - activeCarousel) * 100}%`,
-                    }}
-                    transition={{ duration: 0.5 }}
-                    className={`absolute inset-0 p-3 md:p-4 bg-blue-50 rounded-lg flex flex-col ${index === activeCarousel ? "z-10" : "z-0"
-                      }`}
-                  >
-                    <div className="flex items-start mb-1 md:mb-2">
-                      <FiMessageSquare className="text-blue-500 mt-0.5 md:mt-1 mr-1 md:mr-2" />
-                      <p className="text-gray-800 text-sm md:text-base flex-1">
-                        {message.content}
-                      </p>
-                    </div>
-                    <div className="mt-auto text-right text-xs md:text-sm text-gray-500">
-                      {message.receivedAt}
-                    </div>
-                  </motion.div>
-                ))}
-
-                <button
-                  onClick={prevCarousel}
-                  className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-20 bg-white p-1 md:p-2 rounded-full shadow-md text-blue-600 hover:text-blue-800"
-                >
-                  <FaChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
-                </button>
-                <button
-                  onClick={nextCarousel}
-                  className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-20 bg-white p-1 md:p-2 rounded-full shadow-md text-blue-600 hover:text-blue-800"
-                >
-                  <FaChevronRight className="h-3 w-3 md:h-4 md:w-4" />
-                </button>
-              </div>
-            </div>
-          </div>);
-        }
+            ))}
+          </div>
         ) : (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 text-center text-sm md:text-base text-gray-500">
             You haven't created any links yet

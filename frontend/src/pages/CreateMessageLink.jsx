@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaCopy, FaShare, FaSpinner } from "react-icons/fa";
 import Layout from "../components/layouts/Layout";
 import { AuthContext } from "../contexts/AuthContext";
+import { baseUrl } from '../../baseUrl';
 
 const CreateMessageLink = () => {
   const [title, setTitle] = useState("");
@@ -14,26 +15,33 @@ const CreateMessageLink = () => {
 
   const handleGenerateLink = async () => {
     console.log("Button clicked");
+    console.log("userId:", userId);
+    console.log("title:", title);
+    console.log("baseUrl:", baseUrl);
     setIsLoading(true);
 
     try {
-      console.log("try block started.")
+      console.log("try block started.");
+      console.log("Making API call to:", `${baseUrl}/links/create`);
+
       // API call to generate link
-      const response = await axios.post(`${baseUrl}/api/links/create`, {
-        params: {
-          user_id: userId,
-          title: title,
-        },
+      const response = await axios.post(`${baseUrl}/links/create`, {
+        user_id: userId,
+        title: title,
       });
+
       console.log("Response from server: ", response);
       if (response.status === 201) {
-        setGeneratedLink(response.data.link);
-        navigator.clipboard.writeText(response.data.link);
+        setGeneratedLink(response.data?.data?.link);
+        navigator.clipboard.writeText(response.data?.data?.link);
         toast.success("Link generated and copied to clipboard!");
       }
     } catch (error) {
+      console.error("Error details:", error);
+      console.log("Error response:", error.response);
       toast.error(error.response?.data?.message || "Failed to generate link");
     } finally {
+      console.log("finally block - setting isLoading to false");
       setIsLoading(false);
     }
   };
@@ -69,19 +77,19 @@ const CreateMessageLink = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 p-4 md:p-8">
         <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
-            Create Message Link
+            Create Link to Receive Message
           </h1>
 
           {/* Title Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message Title
+              Link Title
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter a title for your message"
+              placeholder="Enter link title (Ex: Sadia's Friday)"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -90,7 +98,6 @@ const CreateMessageLink = () => {
           <div className="flex flex-wrap gap-3 mb-6">
             <button
               onClick={handleGenerateLink}
-              disabled={isLoading || !title.trim()}
               className={`flex items-center px-6 py-2 rounded-lg text-white font-medium ${isLoading || !title.trim()
                 ? "bg-gray-400"
                 : "bg-blue-600 hover:bg-blue-700"
