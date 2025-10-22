@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -11,9 +11,39 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 import axios from "axios";
-import { toast } from "sonner"
+import { toast } from "sonner";
 import { baseUrl } from "../../baseUrl";
 import { AuthContext } from "../contexts/AuthContext";
+
+// Facebook SDK loader function
+const loadFacebookSDK = () => {
+  return new Promise((resolve) => {
+    if (window.FB) {
+      resolve();
+      return;
+    }
+
+    window.fbAsyncInit = function () {
+      window.FB.init({
+        appId: process.env.REACT_APP_FACEBOOK_APP_ID,
+        cookie: true,
+        xfbml: true,
+        version: "v12.0",
+      });
+      resolve();
+    };
+
+    (function (d, s, id) {
+      var js,
+        fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, "script", "facebook-jssdk");
+  });
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,6 +55,13 @@ export default function Login() {
   const navigate = useNavigate();
 
   const { setUserId } = useContext(AuthContext);
+
+  // Load Facebook SDK on component mount
+  useEffect(() => {
+    loadFacebookSDK().catch((error) => {
+      console.error("Failed to load Facebook SDK:", error);
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,8 +77,7 @@ export default function Login() {
       });
 
       if (response.data.flag === "SUCCESS") {
-        toast({
-          title: "Login Successful",
+        toast.success("Login Successful", {
           description: "You have been logged in successfully ✅",
         });
         const data = {
@@ -54,13 +90,12 @@ export default function Login() {
       }
     } catch (error) {
       console.log("err from catch block:", error);
-      console.log("status code from catch block:", error.response.status);
+      console.log("status code from catch block:", error.response?.status);
       if (error.response?.status == 401) {
         toast.error(error.response?.data?.message || "Wrong Password");
       } else if (error.response?.status == 404) {
         toast.error(error.response?.data?.message || "Something went wrong");
-      }
-      else {
+      } else {
         toast.error("An unexpected error occurred");
       }
     } finally {
@@ -68,9 +103,87 @@ export default function Login() {
     }
   };
 
-  const handleSocialLogin = (provider) => {
-    console.log("trying to login with facebook");
+  const handleFacebookLogin = async () => {
+    setSocialLoading("facebook");
+
+    try {
+      await loadFacebookSDK(); // Ensure SDK is loaded
+
+      window.FB.login(
+        async (response) => {
+          if (response.authResponse) {
+            const accessToken = response.authResponse.accessToken;
+            console.log(
+              "Facebook login successful, access token:",
+              accessToken
+            );
+
+            try {
+              // Send token to your backend
+              const facebookResponse = await axios({
+                method: "post",
+                url: `${baseUrl}/user/facebook-login`,
+                data: {
+                  accessToken: accessToken,
+                },
+              });
+
+              if (facebookResponse.data.flag === "SUCCESS") {
+                toast.success("Login Successful", {
+                  description: "You have been logged in with Facebook ✅",
+                });
+
+                const data = {
+                  token: facebookResponse.data.user.token,
+                  id: facebookResponse.data.user.id,
+                };
+
+                setUserId(facebookResponse.data.user.id);
+                sessionStorage.setItem("user_auth", JSON.stringify(data));
+                window.location.href = "/";
+              }
+            } catch (error) {
+              console.error("Backend Facebook login error:", error);
+              if (error.response?.data?.message) {
+                toast.error(error.response.data.message);
+              } else {
+                toast.error("Facebook login failed. Please try again.");
+              }
+            }
+          } else {
+            // User cancelled login or didn't authorize
+            if (response.status === "not_authorized") {
+              toast.error("Facebook login was not authorized");
+            } else {
+              toast.error("Facebook login was cancelled");
+            }
+          }
+          setSocialLoading(null);
+        },
+        {
+          scope: "public_profile,email", // Request email permission
+          return_scopes: true,
+        }
+      );
+    } catch (error) {
+      console.error("Facebook SDK error:", error);
+      toast.error("Failed to initialize Facebook login");
+      setSocialLoading(null);
+    }
   };
+
+  // Alternative: Manual OAuth redirect flow (uncomment if you prefer this approach)
+  /*
+  const handleFacebookRedirect = () => {
+    const facebookAppId = process.env.REACT_APP_FACEBOOK_APP_ID;
+    const redirectUri = `${window.location.origin}/auth/facebook/callback`;
+    const scope = 'public_profile,email';
+    
+    const facebookAuthUrl = `https://www.facebook.com/v12.0/dialog/oauth?client_id=${facebookAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
+    
+    window.location.href = facebookAuthUrl;
+  };
+  */
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 p-4">
@@ -227,7 +340,7 @@ export default function Login() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => handleSocialLogin("facebook")}
+              onClick={handleFacebookLogin}
               disabled={socialLoading === "facebook"}
               className="hover:cursor-pointer w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
             >
@@ -236,7 +349,7 @@ export default function Login() {
               ) : (
                 <>
                   <FaFacebook className="h-5 w-5 text-blue-600 mr-2" />
-                  Facebook
+                  Continue with Facebook
                 </>
               )}
             </motion.button>
