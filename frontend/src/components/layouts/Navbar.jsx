@@ -9,6 +9,7 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
+  FaList
 } from "react-icons/fa";
 
 const Navbar = () => {
@@ -53,6 +54,11 @@ const Navbar = () => {
       path: "/create-link",
       icon: FaLink,
       label: "Create Link",
+    },
+    {
+      path: "/link-list",
+      icon: FaList,
+      label: "Link List",
     },
     {
       path: "/inbox",

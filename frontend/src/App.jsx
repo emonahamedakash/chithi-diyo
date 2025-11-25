@@ -12,6 +12,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import CreateMessageLink from "./pages/CreateMessageLink";
 import ProfilePage from "./pages/ProfilePage";
+import SubmitMessage from "./pages/SubmitMessage";
+import LinkList from "./pages/LinkList";
 
 
 function App() {
@@ -26,6 +28,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/create-link" element={<CreateMessageLink />} />
+            <Route path="/link-list" element={<LinkList />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -43,6 +46,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/submit-message" element={<SubmitMessage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

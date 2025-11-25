@@ -69,7 +69,7 @@ export default function Login() {
     try {
       const response = await axios({
         method: "post",
-        url: `${baseUrl}/user/login`,
+        url: `${baseUrl}/auth/login`,
         data: {
           email,
           password,

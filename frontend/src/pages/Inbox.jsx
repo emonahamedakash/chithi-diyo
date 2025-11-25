@@ -46,10 +46,10 @@ const InboxPage = () => {
   const fetchInbox = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${baseUrl}/inbox/fetch-message-list/${userId}`);
-      console.log(response);
+      const response = await axios.get(`${baseUrl}/message/fetch-message-list?user_id=${userId}`);
+      console.log("response: ", response);
 
-      if (response.status === 200 && response.data.flag === "SUCCESS") {
+      if (response.data.success) {
         setMessageList(response.data.list || []);
       } else {
         console.log('No messages found or API error');
@@ -73,7 +73,7 @@ const InboxPage = () => {
   const handleAddToFavourite = async (messageId, e) => {
     e.stopPropagation();
     try {
-      const response = await axios.patch(`${baseUrl}/inbox/add-to-favourite/${messageId}`);
+      const response = await axios.patch(`${baseUrl}/message/add-to-favourite/${messageId}`);
       console.log("handleAddToFavourite: ", response);
       setFavouritedMessages(prev => {
         const newSet = new Set(prev);
@@ -96,7 +96,7 @@ const InboxPage = () => {
     e.stopPropagation();
     if (window.confirm("Are you sure you want to delete this message?")) {
       try {
-        await axios.delete(`${baseUrl}/inbox/delete-message/${messageId}`);
+        await axios.delete(`${baseUrl}/message/delete-message/${messageId}`);
         toast.success("Message deleted");
 
         // Remove message from local state
@@ -127,10 +127,10 @@ const InboxPage = () => {
       const response = await axios.patch(`${baseUrl}/inbox/mark-as-read/${messageId}`);
       console.log("handleMarkAsRead: ", response);
 
-      // Update message read status locally
+      // Update message read status locally - using mark_as_read from API response
       setMessageList(prev =>
         prev.map(msg =>
-          msg.id === messageId ? { ...msg, is_read: true } : msg
+          msg.id === messageId ? { ...msg, mark_as_read: 1 } : msg
         )
       );
       toast.success("Message marked as read");
@@ -147,7 +147,7 @@ const InboxPage = () => {
     setIsDialogOpen(true);
 
     // Mark as read when opening details if not already read
-    if (!message.is_read) {
+    if (message.mark_as_read === 0) {
       handleMarkAsRead(message.id);
     }
   };
@@ -161,13 +161,13 @@ const InboxPage = () => {
   // Copy message from dialog
   const handleCopyMessage = () => {
     if (selectedMessage) {
-      copyMessage(selectedMessage.message);
+      copyMessage(selectedMessage.message_text);
     }
   };
 
-  // Format date to be more readable
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
+  // Format timestamp to be more readable
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -179,9 +179,9 @@ const InboxPage = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Extract time from date string
-  const formatTime = (dateString) => {
-    const date = new Date(dateString);
+  // Extract time from timestamp
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
@@ -190,8 +190,8 @@ const InboxPage = () => {
   };
 
   // Format full date for dialog
-  const formatFullDate = (dateString) => {
-    const date = new Date(dateString);
+  const formatFullDate = (timestamp) => {
+    const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -204,6 +204,7 @@ const InboxPage = () => {
 
   // Truncate message for title
   const truncateMessage = (message, maxLength = 50) => {
+    if (!message) return '';
     if (message.length <= maxLength) return message;
     return message.substring(0, maxLength) + '...';
   };
@@ -257,29 +258,32 @@ const InboxPage = () => {
                         y: -2,
                         transition: { duration: 0.2 }
                       }}
-                      className={`relative rounded-2xl shadow-lg overflow-hidden border-2 ${message.is_read
+                      className={`relative rounded-2xl shadow-lg overflow-hidden border-2 ${message.mark_as_read === 1
                         ? "bg-gradient-to-r from-gray-50 to-white border-gray-100 shadow-sm"
                         : "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-blue-100/50"
                         } transition-all duration-300`}
                     >
                       {/* Message Header */}
-                      <div className={`p-5 ${message.is_read ? '' : 'border-b border-blue-100/50'}`}>
+                      <div className={`p-5 ${message.mark_as_read === 1 ? '' : 'border-b border-blue-100/50'}`}>
                         {/* Link Info */}
-                        {message.title && (
-                          <div className={`mb-3 p-3 rounded-xl ${message.is_read
+                        {message.link_title && (
+                          <div className={`mb-3 p-3 rounded-xl ${message.mark_as_read === 1
                             ? "bg-gray-100/80"
                             : "bg-blue-100/80 border border-blue-200/50"
                             }`}>
-                            <FaLink className={`mr-2 ${message.is_read ? "text-gray-600" : "text-blue-600"
-                              }`} />
-                            <span className={`text-sm font-medium truncate ${message.is_read ? "text-gray-700" : "text-blue-700"
-                              }`}>
-                              From: {message.title}
-                            </span>
-                            <div className="flex items-center gap-2 text-sm text-slate-500">
-                              <CiCalendar className="w-4 h-4" />
-                              <span>Link created {formatDate(message.link_created_at)} at {formatTime(message.link_created_at)}</span>
+                            <div className="flex items-center mb-1">
+                              <FaLink className={`mr-2 ${message.mark_as_read === 1 ? "text-gray-600" : "text-blue-600"
+                                }`} />
+                              <span className={`text-sm font-medium truncate ${message.mark_as_read === 1 ? "text-gray-700" : "text-blue-700"
+                                }`}>
+                                {message.link_title}
+                              </span>
                             </div>
+                            {message.link && (
+                              <div className="text-xs text-slate-500 truncate" title={message.link}>
+                                {message.link}
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -287,13 +291,13 @@ const InboxPage = () => {
                         <div className="flex items-start mt-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start mb-3">
-                              <h3 className={`text-base font-semibold leading-relaxed ${message.is_read ? "text-gray-700" : "text-gray-900"
+                              <h3 className={`text-base font-semibold leading-relaxed ${message.mark_as_read === 1 ? "text-gray-700" : "text-gray-900"
                                 }`}>
-                                {truncateMessage(message.message)}
+                                {truncateMessage(message.message_text)}
                               </h3>
-                              <span className={`text-sm ml-3 whitespace-nowrap flex items-center ${message.is_read ? "text-gray-500" : "text-blue-600 font-medium"
+                              <span className={`text-sm ml-3 whitespace-nowrap flex items-center ${message.mark_as_read === 1 ? "text-gray-500" : "text-blue-600 font-medium"
                                 }`}>
-                                <FaClock className={`mr-1 ${message.is_read ? "text-gray-400" : "text-blue-400"
+                                <FaClock className={`mr-1 ${message.mark_as_read === 1 ? "text-gray-400" : "text-blue-400"
                                   }`} />
                                 {formatTime(message.created_at)}
                               </span>
@@ -303,7 +307,7 @@ const InboxPage = () => {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className={`px-5 py-4 flex justify-between items-center ${message.is_read
+                      <div className={`px-5 py-4 flex justify-between items-center ${message.mark_as_read === 1
                         ? "bg-gray-50/80 border-t border-gray-100"
                         : "bg-blue-50/80 border-t border-blue-100"
                         }`}>
@@ -315,7 +319,7 @@ const InboxPage = () => {
                             onClick={(e) => handleAddToFavourite(message.id, e)}
                             className={`p-3 rounded-xl transition-all ${favouritedMessages.has(message.id)
                               ? "text-red-500 bg-red-50 shadow-sm"
-                              : `text-gray-500 hover:text-red-600 ${message.is_read
+                              : `text-gray-500 hover:text-red-600 ${message.mark_as_read === 1
                                 ? "hover:bg-gray-100"
                                 : "hover:bg-blue-100"
                               }`
@@ -334,7 +338,7 @@ const InboxPage = () => {
                             whileHover={{ scale: 1.1, y: -1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => handleDelete(message.id, e)}
-                            className={`p-3 rounded-xl transition-all text-gray-500 hover:text-red-600 ${message.is_read
+                            className={`p-3 rounded-xl transition-all text-gray-500 hover:text-red-600 ${message.mark_as_read === 1
                               ? "hover:bg-gray-100"
                               : "hover:bg-blue-100"
                               }`}
@@ -350,7 +354,7 @@ const InboxPage = () => {
                             whileHover={{ scale: 1.1, y: -1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => handleSeeDetails(message, e)}
-                            className={`p-3 rounded-xl transition-all text-gray-500 hover:text-purple-600 ${message.is_read
+                            className={`p-3 rounded-xl transition-all text-gray-500 hover:text-purple-600 ${message.mark_as_read === 1
                               ? "hover:bg-gray-100"
                               : "hover:bg-blue-100"
                               }`}
@@ -360,7 +364,7 @@ const InboxPage = () => {
                           </motion.button>
 
                           {/* Mark as Read Button */}
-                          {!message.is_read && (
+                          {message.mark_as_read === 0 && (
                             <motion.button
                               whileHover={{ scale: 1.1, y: -1 }}
                               whileTap={{ scale: 0.9 }}
@@ -378,9 +382,9 @@ const InboxPage = () => {
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              copyMessage(message.message);
+                              copyMessage(message.message_text);
                             }}
-                            className={`p-3 rounded-xl transition-all text-gray-500 hover:text-blue-600 ${message.is_read
+                            className={`p-3 rounded-xl transition-all text-gray-500 hover:text-blue-600 ${message.mark_as_read === 1
                               ? "hover:bg-gray-100"
                               : "hover:bg-blue-100"
                               }`}
@@ -429,20 +433,25 @@ const InboxPage = () => {
 
             {selectedMessage && (
               <div className="space-y-4">
-                {/* Sender Info */}
-                {selectedMessage.title && (
+                {/* Link Info */}
+                {selectedMessage.link_title && (
                   <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                    <div className="flex items-center text-sm text-blue-700">
+                    <div className="flex items-center text-sm text-blue-700 mb-1">
                       <FaLink className="mr-2 h-4 w-4" />
-                      <span className="font-medium">From: {selectedMessage.title}</span>
+                      <span className="font-medium">{selectedMessage.link_title}</span>
                     </div>
+                    {selectedMessage.link && (
+                      <div className="text-xs text-blue-600 truncate" title={selectedMessage.link}>
+                        {selectedMessage.link}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* Message Content */}
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
-                    {selectedMessage.message}
+                    {selectedMessage.message_text}
                   </p>
                 </div>
 
@@ -452,13 +461,20 @@ const InboxPage = () => {
                     <FaClock className="h-3 w-3" />
                     <span>{formatFullDate(selectedMessage.created_at)}</span>
                   </div>
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${selectedMessage.is_read
+                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${selectedMessage.mark_as_read === 1
                     ? "bg-gray-100 text-gray-600"
                     : "bg-blue-100 text-blue-600"
                     }`}>
-                    {selectedMessage.is_read ? "Read" : "Unread"}
+                    {selectedMessage.mark_as_read === 1 ? "Read" : "Unread"}
                   </div>
                 </div>
+
+                {/* Click Count */}
+                {selectedMessage.click_count !== null && (
+                  <div className="text-sm text-gray-500">
+                    <span className="font-medium">Clicks:</span> {selectedMessage.click_count}
+                  </div>
+                )}
 
                 {/* Dialog Actions */}
                 <div className="flex justify-end gap-2 pt-4 border-t">

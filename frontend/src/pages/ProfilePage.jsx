@@ -61,7 +61,7 @@ const ProfilePage = () => {
 
   const getDashboardData = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/fetch-dashboard-data`,
+      const response = await axios.get(`${baseUrl}/dashboard/fetch-dashboard-data`,
         {
           params: { user_id: 1 }
         }

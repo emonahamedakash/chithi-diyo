@@ -7,6 +7,9 @@ import { motion } from "framer-motion";
 import {
   FaPlus,
   FaInbox,
+  FaLink,
+  FaMousePointer,
+  FaEnvelopeOpen,
 } from "react-icons/fa";
 import { FiMessageSquare } from "react-icons/fi";
 import Layout from "../components/layouts/Layout";
@@ -16,10 +19,14 @@ const Dashboard = () => {
   const [activeCarousel, setActiveCarousel] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [totalLinks, setTotalLinks] = useState(0);
-  const [totalMessages, setTotalMessages] = useState(0);
-  const [recentMessages, setRecentMessages] = useState([]);
-  const [recentLinks, setRecentLinks] = useState([]);
+  const [dashboardData, setDashboardData] = useState({
+    total_links: 0,
+    total_messages: 0,
+    unread_messages: 0,
+    total_clicks: 0,
+    recent_links: [],
+    recent_messages: []
+  });
 
   useEffect(() => {
     getDashboardData();
@@ -27,33 +34,35 @@ const Dashboard = () => {
 
   const getDashboardData = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/fetch-dashboard-data`,
+      const response = await axios.get(`${baseUrl}/dashboard/fetch-dashboard-data`,
         {
-          params: { user_id: 1 }
+          params: { user_id: 2 } // You might want to get this from auth context or props
         }
-      )
+      );
 
-      console.log(response);
+      console.log("Dashboard response:", response);
 
-      if (response.status === 200) {
-        setTotalLinks(response.data.total_links);
-        setTotalMessages(response.data.total_messages);
-        setRecentMessages(response.data.recent_messages);
-        setRecentLinks(response.data.recent_links);
+      if (response.data.success) {
+        setDashboardData(response.data.data);
       }
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const nextCarousel = () => {
-    setActiveCarousel((prev) => (prev === recentMessages.length - 1 ? 0 : prev + 1));
+    setActiveCarousel((prev) => (prev === dashboardData.recent_messages.length - 1 ? 0 : prev + 1));
   };
 
   const prevCarousel = () => {
-    setActiveCarousel((prev) => (prev === 0 ? recentMessages.length - 1 : prev - 1));
+    setActiveCarousel((prev) => (prev === 0 ? dashboardData.recent_messages.length - 1 : prev - 1));
+  };
+
+  const handleCreateLink = () => {
+    // Navigate to create link page or open modal
+    navigate("/create-link");
   };
 
   return (
@@ -72,41 +81,102 @@ const Dashboard = () => {
         </p>
       </motion.div>
 
-      {/* Top Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+      {/* Top Cards - Enhanced with more metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        {/* Total Links Card */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
           className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border-l-4 border-blue-500"
         >
-          <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
-            Total Links
-          </h3>
-          {loading ? (
-            <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
-          ) : (
-            <p className="text-2xl md:text-3xl font-bold text-gray-800">
-              {totalLinks}
-            </p>
-          )}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
+                Total Links
+              </h3>
+              {loading ? (
+                <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl md:text-3xl font-bold text-gray-800">
+                  {dashboardData.total_links}
+                </p>
+              )}
+            </div>
+            <FaLink className="text-blue-500 text-xl md:text-2xl" />
+          </div>
         </motion.div>
+
+        {/* Total Messages Card */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.45 }}
+          className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border-l-4 border-cyan-500"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
+                Total Messages
+              </h3>
+              {loading ? (
+                <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl md:text-3xl font-bold text-gray-800">
+                  {dashboardData.total_messages}
+                </p>
+              )}
+            </div>
+            <FiMessageSquare className="text-cyan-500 text-xl md:text-2xl" />
+          </div>
+        </motion.div>
+
+        {/* Unread Messages Card */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border-l-4 border-cyan-500"
+          className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border-l-4 border-orange-500"
         >
-          <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
-            Messages
-          </h3>
-          {loading ? (
-            <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
-          ) : (
-            <p className="text-2xl md:text-3xl font-bold text-gray-800">
-              {totalMessages}
-            </p>
-          )}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
+                Unread Messages
+              </h3>
+              {loading ? (
+                <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl md:text-3xl font-bold text-gray-800">
+                  {dashboardData.unread_messages}
+                </p>
+              )}
+            </div>
+            <FaEnvelopeOpen className="text-orange-500 text-xl md:text-2xl" />
+          </div>
+        </motion.div>
+
+        {/* Total Clicks Card */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.55 }}
+          className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border-l-4 border-green-500"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
+                Total Clicks
+              </h3>
+              {loading ? (
+                <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-2xl md:text-3xl font-bold text-gray-800">
+                  {dashboardData.total_clicks}
+                </p>
+              )}
+            </div>
+            <FaMousePointer className="text-green-500 text-xl md:text-2xl" />
+          </div>
         </motion.div>
       </div>
 
@@ -118,6 +188,7 @@ const Dashboard = () => {
         className="mb-6 md:mb-8"
       >
         <motion.button
+          onClick={handleCreateLink}
           whileHover={{
             scale: 1.02,
             boxShadow: "0px 5px 15px rgba(37, 99, 235, 0.4)",
@@ -134,7 +205,7 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.65 }}
         className="mb-6 md:mb-8"
       >
         <div className="flex justify-between items-center mb-3 md:mb-4">
@@ -142,39 +213,50 @@ const Dashboard = () => {
             Recent Messages
           </h3>
           <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
-            Total: {totalMessages || 0}
+            Total: {dashboardData.total_messages || 0}
           </span>
         </div>
         {loading ? (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 h-24 md:h-32 animate-pulse"></div>
-        ) : recentMessages && recentMessages.length > 0 ? (
+        ) : dashboardData.recent_messages && dashboardData.recent_messages.length > 0 ? (
           <div className="space-y-4">
-            {recentMessages.map((message) => (
+            {dashboardData.recent_messages.map((message) => (
               <div
                 key={message.id}
-                className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6"
+                className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-start mb-3">
-                  <FiMessageSquare className={`mt-0.5 mr-2 flex-shrink-0 ${message.is_read ? 'text-green-500' : 'text-blue-500'}`} />
-                  <p className="text-gray-800 text-sm md:text-base line-clamp-3">
-                    {message.message}
-                  </p>
+                  <FiMessageSquare className={`mt-0.5 mr-2 flex-shrink-0 ${message.mark_as_read ? 'text-green-500' : 'text-blue-500'}`} />
+                  <div className="flex-1">
+                    <p className="text-gray-800 text-sm md:text-base line-clamp-3 mb-2">
+                      {message.message_text}
+                    </p>
+                    {message.link_title && (
+                      <p className="text-xs text-gray-500 mb-1">
+                        From: <span className="font-medium">{message.link_title}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-xs md:text-sm text-gray-500">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-xs md:text-sm text-gray-500 space-y-2 sm:space-y-0">
                   <span>Received: {new Date(message.created_at).toLocaleDateString()}</span>
                   <div className="flex items-center space-x-4">
-                    <span className={`px-2 py-1 rounded ${message.is_read ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {message.is_read ? 'Read' : 'Unread'}
+                    <span className={`px-2 py-1 rounded ${message.mark_as_read ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                      {message.mark_as_read ? 'Read' : 'Unread'}
                     </span>
-                    <span>Clicks: {message.click_count}</span>
+                    <span>Clicks: {message.click_count || 0}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 text-center text-sm md:text-base text-gray-500">
-            No recent messages
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-8 md:p-12 text-center">
+            <FiMessageSquare className="mx-auto text-4xl text-gray-300 mb-4" />
+            <h4 className="text-lg font-medium text-gray-500 mb-2">No messages yet</h4>
+            <p className="text-gray-400 text-sm mb-4">
+              Messages will appear here when people start sending them to your links
+            </p>
           </div>
         )}
       </motion.div>
@@ -191,17 +273,17 @@ const Dashboard = () => {
             Your Recent Links
           </h3>
           <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
-            Total: {totalLinks || 0}
+            Total: {dashboardData.total_links || 0}
           </span>
         </div>
         {loading ? (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 h-24 md:h-32 animate-pulse"></div>
-        ) : recentLinks && recentLinks.length > 0 ? (
+        ) : dashboardData.recent_links && dashboardData.recent_links.length > 0 ? (
           <div className="space-y-4">
-            {recentLinks.map((link) => (
+            {dashboardData.recent_links.map((link) => (
               <div
                 key={link.id}
-                className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6"
+                className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 md:mb-4">
                   <div className="mb-2 md:mb-0 flex-1">
@@ -225,8 +307,18 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 text-center text-sm md:text-base text-gray-500">
-            You haven't created any links yet
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-8 md:p-12 text-center">
+            <FaLink className="mx-auto text-4xl text-gray-300 mb-4" />
+            <h4 className="text-lg font-medium text-gray-500 mb-2">No links created yet</h4>
+            <p className="text-gray-400 text-sm mb-4">
+              Create your first link to start receiving messages
+            </p>
+            <button
+              onClick={handleCreateLink}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Create Your First Link
+            </button>
           </div>
         )}
       </motion.div>

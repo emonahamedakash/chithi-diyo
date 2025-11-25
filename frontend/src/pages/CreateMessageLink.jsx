@@ -14,34 +14,23 @@ const CreateMessageLink = () => {
   const { userId } = useContext(AuthContext);
 
   const handleGenerateLink = async () => {
-    console.log("Button clicked");
-    console.log("userId:", userId);
-    console.log("title:", title);
-    console.log("baseUrl:", baseUrl);
     setIsLoading(true);
 
     try {
-      console.log("try block started.");
-      console.log("Making API call to:", `${baseUrl}/links/create`);
-
-      // API call to generate link
-      const response = await axios.post(`${baseUrl}/links/create`, {
+      const response = await axios.post(`${baseUrl}/link/create-new-link`, {
         user_id: userId,
         title: title,
+        created_at: Math.floor(Date.now() / 1000)
       });
 
-      console.log("Response from server: ", response);
       if (response.status === 201) {
         setGeneratedLink(response.data?.data?.link);
         navigator.clipboard.writeText(response.data?.data?.link);
         toast.success("Link generated and copied to clipboard!");
       }
     } catch (error) {
-      console.error("Error details:", error);
-      console.log("Error response:", error.response);
       toast.error(error.response?.data?.message || "Failed to generate link");
     } finally {
-      console.log("finally block - setting isLoading to false");
       setIsLoading(false);
     }
   };
