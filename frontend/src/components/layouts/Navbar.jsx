@@ -31,8 +31,8 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    // Add logout logic here
-    navigate("/login");
+    sessionStorage.clear();
+    window.location.href = "/"
   };
 
   const toggleMobileNav = () => {

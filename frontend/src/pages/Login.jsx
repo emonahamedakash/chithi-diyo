@@ -56,13 +56,6 @@ export default function Login() {
 
   const { setUserId } = useContext(AuthContext);
 
-  // Load Facebook SDK on component mount
-  useEffect(() => {
-    loadFacebookSDK().catch((error) => {
-      console.error("Failed to load Facebook SDK:", error);
-    });
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -76,7 +69,7 @@ export default function Login() {
         },
       });
 
-      if (response.data.flag === "SUCCESS") {
+      if (response.data.success) {
         toast.success("Login Successful", {
           description: "You have been logged in successfully ✅",
         });
@@ -172,19 +165,6 @@ export default function Login() {
     }
   };
 
-  // Alternative: Manual OAuth redirect flow (uncomment if you prefer this approach)
-  /*
-  const handleFacebookRedirect = () => {
-    const facebookAppId = process.env.REACT_APP_FACEBOOK_APP_ID;
-    const redirectUri = `${window.location.origin}/auth/facebook/callback`;
-    const scope = 'public_profile,email';
-    
-    const facebookAuthUrl = `https://www.facebook.com/v12.0/dialog/oauth?client_id=${facebookAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
-    
-    window.location.href = facebookAuthUrl;
-  };
-  */
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 p-4">
       <motion.div
@@ -276,7 +256,7 @@ export default function Login() {
             <div className="flex items-center justify-between">
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 hidden"
               >
                 <input
                   id="remember"
@@ -336,7 +316,7 @@ export default function Login() {
           </div>
 
           {/* Social Login Buttons */}
-          <div>
+          {/* <div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -353,7 +333,7 @@ export default function Login() {
                 </>
               )}
             </motion.button>
-          </div>
+          </div> */}
 
           <motion.div
             initial={{ opacity: 0 }}

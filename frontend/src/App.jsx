@@ -46,7 +46,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/submit-message" element={<SubmitMessage />} />
+            <Route path="/sent-message/:link" element={<SubmitMessage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -37,8 +37,6 @@ const InboxPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
 
-  console.log("user id from context: ", userId);
-
   useEffect(() => {
     fetchInbox();
   }, []);
@@ -47,8 +45,6 @@ const InboxPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${baseUrl}/message/fetch-message-list?user_id=${userId}`);
-      console.log("response: ", response);
-
       if (response.data.success) {
         setMessageList(response.data.list || []);
       } else {
@@ -115,7 +111,6 @@ const InboxPage = () => {
           setSelectedMessage(null);
         }
       } catch (error) {
-        console.error("Error deleting message:", error);
         toast.error("Failed to delete message");
       }
     }
@@ -124,8 +119,7 @@ const InboxPage = () => {
   const handleMarkAsRead = async (messageId, e) => {
     if (e) e.stopPropagation();
     try {
-      const response = await axios.patch(`${baseUrl}/inbox/mark-as-read/${messageId}`);
-      console.log("handleMarkAsRead: ", response);
+      const response = await axios.patch(`${baseUrl}/message/mark-as-read/${messageId}`);
 
       // Update message read status locally - using mark_as_read from API response
       setMessageList(prev =>
@@ -133,7 +127,6 @@ const InboxPage = () => {
           msg.id === messageId ? { ...msg, mark_as_read: 1 } : msg
         )
       );
-      toast.success("Message marked as read");
     } catch (error) {
       console.error("Error marking message as read:", error);
       toast.error("Failed to mark message as read");

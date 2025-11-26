@@ -1,5 +1,5 @@
 // pages/Dashboard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { baseUrl } from "../../baseUrl";
 import { useNavigate } from "react-router-dom";
@@ -13,11 +13,15 @@ import {
 } from "react-icons/fa";
 import { FiMessageSquare } from "react-icons/fi";
 import Layout from "../components/layouts/Layout";
+import { AuthContext } from "../contexts/AuthContext";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [activeCarousel, setActiveCarousel] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(AuthContext);
+
+  const { userId } = useContext(AuthContext);
 
   const [dashboardData, setDashboardData] = useState({
     total_links: 0,
@@ -36,30 +40,24 @@ const Dashboard = () => {
     try {
       const response = await axios.get(`${baseUrl}/dashboard/fetch-dashboard-data`,
         {
-          params: { user_id: 2 } // You might want to get this from auth context or props
+          params: { user_id: userId }
         }
       );
-
-      console.log("Dashboard response:", response);
 
       if (response.data.success) {
         setDashboardData(response.data.data);
       }
     } catch (error) {
-      console.log("Error fetching dashboard data:", error);
+      console.log("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
-  const nextCarousel = () => {
-    setActiveCarousel((prev) => (prev === dashboardData.recent_messages.length - 1 ? 0 : prev + 1));
+  const inbox = () => {
+    // Navigate to create link page or open modal
+    navigate("/inbox");
   };
-
-  const prevCarousel = () => {
-    setActiveCarousel((prev) => (prev === 0 ? dashboardData.recent_messages.length - 1 : prev - 1));
-  };
-
   const handleCreateLink = () => {
     // Navigate to create link page or open modal
     navigate("/create-link");
@@ -154,30 +152,6 @@ const Dashboard = () => {
             <FaEnvelopeOpen className="text-orange-500 text-xl md:text-2xl" />
           </div>
         </motion.div>
-
-        {/* Total Clicks Card */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.55 }}
-          className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 border-l-4 border-green-500"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base md:text-lg font-medium text-gray-500 mb-2">
-                Total Clicks
-              </h3>
-              {loading ? (
-                <div className="h-6 md:h-8 w-16 md:w-24 bg-gray-200 rounded animate-pulse"></div>
-              ) : (
-                <p className="text-2xl md:text-3xl font-bold text-gray-800">
-                  {dashboardData.total_clicks}
-                </p>
-              )}
-            </div>
-            <FaMousePointer className="text-green-500 text-xl md:text-2xl" />
-          </div>
-        </motion.div>
       </div>
 
       {/* Create New Link Button */}
@@ -261,6 +235,27 @@ const Dashboard = () => {
         )}
       </motion.div>
 
+      {/* Go to Inbox Button */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="flex justify-center"
+      >
+        <motion.button
+          whileHover={{
+            scale: 1.02,
+            boxShadow: "0px 5px 15px rgba(37, 99, 235, 0.2)",
+          }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate("/inbox")}
+          className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-white text-blue-600 border border-blue-200 rounded-lg md:rounded-xl shadow-sm text-sm md:text-base font-medium hover:bg-blue-50 transition-colors"
+        >
+          <FaInbox className="mr-1 md:mr-2" />
+          Go to Inbox
+        </motion.button>
+      </motion.div>
+
       {/* Recent Links Section */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -280,7 +275,8 @@ const Dashboard = () => {
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 h-24 md:h-32 animate-pulse"></div>
         ) : dashboardData.recent_links && dashboardData.recent_links.length > 0 ? (
           <div className="space-y-4">
-            {dashboardData.recent_links.map((link) => (
+            {dashboardData.recent_links.map((link) =>
+            (
               <div
                 key={link.id}
                 className="bg-white rounded-xl md:rounded-2xl shadow-md p-4 md:p-6 hover:shadow-lg transition-shadow"
@@ -298,13 +294,14 @@ const Dashboard = () => {
                     <span className="text-xs md:text-sm text-gray-500">
                       Created: {new Date(link.created_at).toLocaleDateString()}
                     </span>
-                    <span className={`text-xs px-2 py-1 rounded ${link.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {link.is_active ? 'Active' : 'Inactive'}
+                    <span className={`text-xs px-2 py-1 rounded ${link.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {link.status === 1 ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
               </div>
-            ))}
+            )
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-xl md:rounded-2xl shadow-md p-8 md:p-12 text-center">
@@ -339,8 +336,8 @@ const Dashboard = () => {
           onClick={() => navigate("/inbox")}
           className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-white text-blue-600 border border-blue-200 rounded-lg md:rounded-xl shadow-sm text-sm md:text-base font-medium hover:bg-blue-50 transition-colors"
         >
-          <FaInbox className="mr-1 md:mr-2" />
-          Go to Inbox
+          <FaLink className="mr-1 md:mr-2" />
+          Create New Link
         </motion.button>
       </motion.div>
     </Layout>

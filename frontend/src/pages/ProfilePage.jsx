@@ -40,7 +40,6 @@ const ProfilePage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${baseUrl}/profile/fetch-details/?user_id=${userId}`)
-      console.log("response from getDetails: ", response);
       if (response.status === 200) {
         setuserDetails(response.data.details || {});
         setCurrentPassword(response.data.details.password || "");
@@ -66,8 +65,6 @@ const ProfilePage = () => {
           params: { user_id: 1 }
         }
       )
-
-      console.log(response);
 
       if (response.status === 200) {
         setTotalReceivedMessageCount(response.data.total_messages);

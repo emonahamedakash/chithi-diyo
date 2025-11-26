@@ -37,12 +37,11 @@ export default function RegistrationForm() {
         },
       });
 
-      if (response.data?.flag === "SUCCESS" && response?.status === 201) {
+      console.log("response: ", response);
+
+      if (response?.data?.success) {
         toast.success("Registration Successful ✅");
-        errorMsg("Register Successful...\n Redirecting to login page...");
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+        window.location.href = "/login"
       }
     } catch (error) {
       if (error.response.status === 409) {
@@ -200,7 +199,7 @@ export default function RegistrationForm() {
           </form>
 
           {/* Social Registration Divider */}
-          <div className="relative my-6">
+          {/* <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
@@ -209,13 +208,13 @@ export default function RegistrationForm() {
                 Or sign up with
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Social Registration Buttons */}
           <div>
 
 
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleSocialRegister("facebook")}
@@ -230,7 +229,7 @@ export default function RegistrationForm() {
                   Facebook
                 </>
               )}
-            </motion.button>
+            </motion.button> */}
           </div>
 
           <motion.div

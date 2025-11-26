@@ -1,15 +1,17 @@
 import React, { useState, useContext } from "react";
 import { toast } from "sonner";
 import axios from "axios";
-import { FaCopy, FaShare, FaSpinner } from "react-icons/fa";
+import { FaCopy, FaShare, FaSpinner, FaArrowRight } from "react-icons/fa";
 import Layout from "../components/layouts/Layout";
 import { AuthContext } from "../contexts/AuthContext";
 import { baseUrl } from '../../baseUrl';
+import { useNavigate } from "react-router-dom";
 
 const CreateMessageLink = () => {
   const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
+  const navigate = useNavigate();
 
   const { userId } = useContext(AuthContext);
 
@@ -23,7 +25,7 @@ const CreateMessageLink = () => {
         created_at: Math.floor(Date.now() / 1000)
       });
 
-      if (response.status === 201) {
+      if (response.data.success) {
         setGeneratedLink(response.data?.data?.link);
         navigator.clipboard.writeText(response.data?.data?.link);
         toast.success("Link generated and copied to clipboard!");
@@ -135,19 +137,34 @@ const CreateMessageLink = () => {
               </div>
             </div>
           )}
-
-          {/* Share Button */}
-          {generatedLink && (
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={handleShareLink}
-                className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-medium"
-              >
-                <FaShare className="mr-2" />
-                Share Link
-              </button>
-            </div>
-          )}
+          <div className="flex justify-between">
+            {/* Share Button */}
+            {generatedLink && (
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={handleShareLink}
+                  className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-medium"
+                >
+                  <FaShare className="mr-2" />
+                  Share Link
+                </button>
+              </div>
+            )}
+            {/* Link List redirect */}
+            {generatedLink && (
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => {
+                    navigate("/link-list")
+                  }}
+                  className="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-medium"
+                >
+                  Got to Link List
+                  <FaArrowRight className="mr-2" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Layout>
