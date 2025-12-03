@@ -15,7 +15,7 @@ const ForgotPassword = () => {
     setMessage('');
 
     try {
-      const response = await axios.post(`${baseUrl}/user/forgot-password`, {
+      const response = await axios.post(`${baseUrl}/auth/forgot-password`, {
         email,
         action: 'request_reset'
       });

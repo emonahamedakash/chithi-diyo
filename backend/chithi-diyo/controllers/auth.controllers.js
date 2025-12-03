@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const db = require("../config/db");
-const axios = require("axios");
+const { chithi } = require("../../config/db");
+
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
@@ -8,54 +8,49 @@ const crypto = require("crypto");
 const register = async (req, res) => {
   try {
     const { user_name, email, password } = req.body;
-    console.log("Req.Body: ", req.body);
 
     if ((!user_name, !email, !password)) {
       return res.status(400).json({
-        flag: "FAIL",
+        success: false,
         message: "User name, email or password missing",
       });
     }
 
-    const checkExistingUser = await db("users")
+    const checkExistingUser = await chithi("users")
       .select("*")
       .where("email", email)
       .first();
 
-    console.log("Check Existing User: ", checkExistingUser);
-
     if (checkExistingUser) {
       return res.status(409).json({
-        flag: "FAIL",
+        success: false,
         message: "User already exist",
       });
     }
     const currentDate = new Date();
 
-    const newUser = await db("users").insert({
+    const newUser = await chithi("users").insert({
       user_name,
       email,
       password,
       created_at: currentDate,
     });
 
-    console.log("New user: ", newUser);
-
     if (!newUser) {
       return res.status(500).json({
-        flag: "FAIL",
+        success: false,
         message: "Could not able to insert into db",
       });
     }
 
     res.status(201).json({
-      flag: "SUCCESS",
+      success: true,
       message: "User created successfully",
     });
   } catch (err) {
     console.log(err);
     res.status(500).json({
-      flag: "FAIL",
+      success: false,
       message: "Something went wrong in the server",
     });
   }
@@ -64,7 +59,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   if (!req.body) {
     return res.status(400).json({
-      flag: "FAIL",
+      success: false,
       message: "Email and password required...",
     });
   }
@@ -75,24 +70,27 @@ const login = async (req, res) => {
     // Validate input
     if (!email || !password) {
       return res.status(400).json({
-        flag: "FAIL",
+        success: false,
         message: "Email and password are required.",
       });
     }
 
     // Find user in DB
-    const user = await db("users").where("email", email).select("*").first();
+    const user = await chithi("users")
+      .where("email", email)
+      .select("*")
+      .first();
 
     if (!user) {
       return res.status(404).json({
-        flag: "FAIL",
+        success: false,
         message: "No user exist",
       });
     }
 
     if (user.password !== password) {
       return res.status(401).json({
-        flag: "FAIL",
+        success: false,
         message: "Invalid credentials.",
       });
     }
@@ -102,7 +100,7 @@ const login = async (req, res) => {
       process.env.JWT_SECRET || "your-secret-key"
     );
 
-    const updateResult = await db("users")
+    const updateResult = await chithi("users")
       .where("id", user.id)
       .update({ token: token });
 
@@ -111,7 +109,7 @@ const login = async (req, res) => {
     }
 
     res.status(200).json({
-      flag: "SUCCESS",
+      success: true,
       message: "Logged in successfully.",
       user: {
         token,
@@ -121,7 +119,7 @@ const login = async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({
-      flag: "FAIL",
+      success: false,
       message: "Internal server error.",
     });
   }
@@ -130,24 +128,21 @@ const login = async (req, res) => {
 //Check is Logged in
 const checkLoginState = async (req, res) => {
   try {
-    console.log("Req.query: ", req.query);
     const { id, token } = req.query;
 
     if (!id || !token) {
       return res.status(400).json({
-        flag: "FAIL",
+        success: false,
         message: "ID and token are required as query parameters",
       });
     }
 
     // Find user in database
-    const user = await db("users").where("id", parseInt(id)).select("*");
-
-    console.log(user);
+    const user = await chithi("users").where("id", parseInt(id)).select("*");
 
     if (!user) {
       return res.status(404).json({
-        flag: "FAIL",
+        success: false,
         message: "User not found",
       });
     }
@@ -155,7 +150,7 @@ const checkLoginState = async (req, res) => {
     // Check token existence
     if (!user.token) {
       return res.status(401).json({
-        flag: "FAIL",
+        success: false,
         message: "No authentication token found for this user",
       });
     }
@@ -163,14 +158,14 @@ const checkLoginState = async (req, res) => {
     // Verify token match
     if (user.token !== token) {
       return res.status(401).json({
-        flag: "FAIL",
+        success: false,
         message: "Invalid authentication token",
       });
     }
 
     // Token is valid
     return res.status(200).json({
-      flag: "SUCCESS",
+      success: true,
       message: "Authentication token is valid",
       user: {
         id: user.id,
@@ -179,7 +174,7 @@ const checkLoginState = async (req, res) => {
   } catch (err) {
     console.error("Error in checkLoginState:", err);
     return res.status(500).json({
-      flag: "FAIL",
+      success: false,
       message: "Internal server error",
     });
   }
@@ -202,7 +197,7 @@ const forgotPassword = async (req, res) => {
   try {
     // Step 1: Request password reset link
     if (action === "request_reset") {
-      const user = await db("users").where({ email }).first();
+      const user = await chithi("users").where({ email }).first();
 
       if (!user) {
         // Don't reveal if user exists for security
@@ -285,7 +280,7 @@ const forgotPassword = async (req, res) => {
       }
 
       // Update password (without hashing for now)
-      await db("users").where({ email: tokenData.email }).update({
+      await chithi("users").where({ email: tokenData.email }).update({
         password: newPassword, // Storing plain text - you'll hash this later
         updated_at: new Date().toISOString(),
       });
@@ -330,95 +325,4 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-//Facebook Login
-
-const facebookLogin = async (req, res) => {
-  try {
-    const { accessToken } = req.body;
-
-    if (!accessToken) {
-      return res.status(400).json({
-        flag: "FAIL",
-        message: "Access token is required",
-      });
-    }
-
-    // Verify token with Facebook
-    const facebookResponse = await axios.get(
-      `https://graph.facebook.com/v12.0/me?fields=id,name,email&access_token=${accessToken}`
-    );
-
-    const { id: facebookId, name, email } = facebookResponse.data;
-
-    if (!email) {
-      return res.status(400).json({
-        flag: "FAIL",
-        message: "Email permission is required",
-      });
-    }
-
-    // Check if user exists
-    let user = await db("users").where("email", email).first();
-
-    if (!user) {
-      // Create new user
-      const currentDate = new Date();
-      const [userId] = await db("users").insert({
-        user_name: name,
-        email: email,
-        facebook_id: facebookId,
-        password: null, // Social login users don't have password
-        created_at: currentDate,
-      });
-
-      user = await db("users").where("id", userId).first();
-    } else {
-      // Update existing user with Facebook ID if not set
-      if (!user.facebook_id) {
-        await db("users")
-          .where("id", user.id)
-          .update({ facebook_id: facebookId });
-      }
-    }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET || "your-secret-key"
-    );
-
-    // Update user token in database
-    await db("users").where("id", user.id).update({ token: token });
-
-    res.status(200).json({
-      flag: "SUCCESS",
-      message: "Facebook login successful",
-      user: {
-        token,
-        id: user.id,
-      },
-    });
-  } catch (error) {
-    console.error("Facebook login error:", error);
-
-    if (error.response?.status === 400) {
-      return res.status(400).json({
-        flag: "FAIL",
-        message: "Invalid Facebook access token",
-      });
-    }
-
-    res.status(500).json({
-      flag: "FAIL",
-      message: "Facebook login failed",
-    });
-  }
-};
-
-module.exports = {
-  register,
-  login,
-  checkLoginState,
-  forgotPassword,
-  facebookLogin,
-};
+module.exports = { register, login, checkLoginState, forgotPassword };

@@ -292,6 +292,7 @@ const InboxPage = () => {
                                 }`}>
                                 <FaClock className={`mr-1 ${message.mark_as_read === 1 ? "text-gray-400" : "text-blue-400"
                                   }`} />
+                                {formatDate(message.created_at)} -
                                 {formatTime(message.created_at)}
                               </span>
                             </div>

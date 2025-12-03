@@ -62,6 +62,22 @@ const Dashboard = () => {
     // Navigate to create link page or open modal
     navigate("/create-link");
   };
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   return (
     <Layout>
@@ -213,7 +229,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-xs md:text-sm text-gray-500 space-y-2 sm:space-y-0">
-                  <span>Received: {new Date(message.created_at).toLocaleDateString()}</span>
+                  <span>Received: {formatDate(message.created_at)}</span>
                   <div className="flex items-center space-x-4">
                     <span className={`px-2 py-1 rounded ${message.mark_as_read ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                       {message.mark_as_read ? 'Read' : 'Unread'}
@@ -292,7 +308,7 @@ const Dashboard = () => {
                   </div>
                   <div className="flex flex-col items-start md:items-end space-y-1">
                     <span className="text-xs md:text-sm text-gray-500">
-                      Created: {new Date(link.created_at).toLocaleDateString()}
+                      Created: {formatDate(link.created_at)}
                     </span>
                     <span className={`text-xs px-2 py-1 rounded ${link.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {link.status === 1 ? 'Active' : 'Inactive'}

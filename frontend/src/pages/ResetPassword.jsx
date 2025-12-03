@@ -26,7 +26,7 @@ const ResetPassword = () => {
             }
 
             try {
-                const response = await axios.post(`${baseUrl}/user/forgot-password`, {
+                const response = await axios.post(`${baseUrl}/auth/forgot-password`, {
                     token,
                     action: 'validate_token'
                 });
@@ -65,7 +65,7 @@ const ResetPassword = () => {
         }
 
         try {
-            const response = await axios.post(`${baseUrl}/user/forgot-password`, {
+            const response = await axios.post(`${baseUrl}/auth/forgot-password`, {
                 token,
                 newPassword,
                 action: 'reset_password'

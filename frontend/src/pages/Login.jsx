@@ -115,7 +115,7 @@ export default function Login() {
               // Send token to your backend
               const facebookResponse = await axios({
                 method: "post",
-                url: `${baseUrl}/user/facebook-login`,
+                url: `${baseUrl}/auth/facebook-login`,
                 data: {
                   accessToken: accessToken,
                 },

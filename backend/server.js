@@ -8,49 +8,84 @@ const path = require("path");
 
 const app = express();
 
-// Update CORS configuration: specify exact origin instead of *
+// CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    // origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        "http://localhost:5173",
+      ];
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(morgan("dev"));
-// Serve the uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 moment.tz.setDefault("Asia/Dhaka");
 
+// Health check
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "OK",
     time: moment().format(),
-    message: "Server is healthy",
+    message: "Central Server is healthy",
+    availableApps: ["dokan-manager", "chithi-diyo", "al-madani", "luxdon"],
   });
 });
 
-// controllerProfile()
+//------------------------Mount Chithi Diyo routes-----------------------------//
+require("./chithi-diyo/routes/auth.routes")(app, "/api/chithi-diyo/auth");
+require("./chithi-diyo/routes/link.routes")(app, "/api/chithi-diyo/link");
+require("./chithi-diyo/routes/message.routes")(app, "/api/chithi-diyo/message");
+require("./chithi-diyo/routes/dashboard.routes")(app, "/api/chithi-diyo/dashboard");
+require("./chithi-diyo/routes/profile.routes")(app, "/api/chithi-diyo/profile");
+require("./chithi-diyo/routes/public.routes")(app, "/api/chithi-diyo/public");
 
-require("./routes/auth.routes")(app);
-require("./routes/link.routes")(app);
-require("./routes/message.routes")(app);
-require("./routes/dashboard.routes")(app);
-require("./routes/profile.routes")(app);
+
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({
+    message: "Central Backend Server Running",
+    availableEndpoints: {
+      chithiDiyo: "/api/chithi-diyo",
+    },
+    health: "/health",
+  });
+});
+
+// 404 handler
+app.use(/.*/, (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Endpoint not found",
+    path: req.originalUrl,
+  });
+});
+
+// Error handler
+app.use((error, req, res, next) => {
+  console.error("Server Error:", error);
+  res.status(500).json({
+    flag: "FAIL",
+    message: "Internal server error",
+  });
+});
 
 const PORT = process.env.PORT || 5050;
 
 app.listen(PORT, () => {
-  db.raw("SELECT 1")
-    .then(() => {
-      console.log("✅ DB Connected");
-    })
-    .catch((err) => {
-      console.log(`❌ DB Not Connected\n${err.message}`);
-    });
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Central Server running on port ${PORT}`);
+  console.log("   - Chithi Diyo: /api/chithi-diyo");
 });
