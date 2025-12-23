@@ -34,6 +34,7 @@ export default function RegistrationForm() {
           user_name: username,
           email,
           password,
+          created_at: Math.floor(Date.now() / 1000),
         },
       });
 
