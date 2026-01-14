@@ -114,74 +114,68 @@ const SubmitMessage = () => {
                 <Card className="shadow-xl border-0 overflow-hidden">
                     <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 w-full" />
 
-                    <CardHeader className="text-center pb-2 px-6 pt-8">
-                        <div>
-                            <img src="/assets/images/logo/logo.png" alt="logo" className='w-[150px]' />
-                        </div>
-                        <div className="flex items-center justify-center mb-4">
-                            <div className="p-3 rounded-full bg-indigo-100">
-                                <MessageSquare className="h-7 w-7 text-indigo-600" />
-                            </div>
-                        </div>
-
-                        <CardTitle className="text-2xl md:text-3xl font-bold text-gray-900">
-                            Send Anonymous Message
-                        </CardTitle>
-
-                        <CardDescription className="text-gray-600 text-sm md:text-base mt-2">
-                            Share your thoughts anonymously. Your identity is completely protected.
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6 px-6 pb-8">
-                        {/* User Profile Section */}
-                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                            <div className="flex items-center space-x-4">
+                    <CardHeader className="text-center pb-2 px-6 ">
+                        <div className="flex flex-col items-center justify-center">
+                            {/* Profile Picture Section - Centered with Increased Size */}
+                            <div>
                                 {isLoading ? (
-                                    <>
-                                        <Skeleton className="h-12 w-12 rounded-full" />
-                                        <div className="space-y-2">
-                                            <Skeleton className="h-4 w-32" />
-                                            <Skeleton className="h-3 w-48" />
-                                        </div>
-                                    </>
+                                    <Skeleton className="h-24 w-24 rounded-full" />
                                 ) : userInfo ? (
-                                    <>
-                                        <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
-                                            <AvatarImage
-                                                src={`${frontEndUrl}/images/profile/${userInfo.profile_picture}`}
-                                                alt={userInfo.user_name}
-                                            />
-                                            <AvatarFallback>
-                                                <User className="h-6 w-6" />
-                                            </AvatarFallback>
-                                        </Avatar>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-semibold text-gray-900 truncate">
-                                                    Sending to {userInfo.user_name}
-                                                </h3>
-                                                <Badge variant="outline" className="text-xs">
-                                                    <Shield className="h-3 w-3 mr-1" />
-                                                    Anonymous
-                                                </Badge>
-                                            </div>
-
-                                            {userInfo.short_bio && (
-                                                <p className="text-sm text-gray-600 truncate">
-                                                    {userInfo.short_bio}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </>
+                                    <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+                                        <AvatarImage
+                                            src={`${frontEndUrl}/images/profile/${userInfo.profile_picture}`}
+                                            alt={userInfo.user_name}
+                                            className="object-cover"
+                                        />
+                                        <AvatarFallback className="bg-gradient-to-r from-indigo-100 to-purple-100">
+                                            <User className="h-12 w-12 text-indigo-600" />
+                                        </AvatarFallback>
+                                    </Avatar>
                                 ) : (
-                                    <div className="flex items-center justify-center w-full py-2">
-                                        <AlertCircle className="h-5 w-5 text-gray-400 mr-2" />
-                                        <span className="text-sm text-gray-500">User information unavailable</span>
+                                    <div className="h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center border-4 border-white shadow-lg">
+                                        <User className="h-12 w-12 text-gray-400" />
                                     </div>
                                 )}
                             </div>
+                        </div>
+                        <CardTitle className="text-2xl md:text-3xl font-bold text-gray-900">
+                            Chithi Diyo
+                        </CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="space-y-6 px-6">
+                        {/* User Info Section */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 text-center">
+                            {isLoading ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-5 w-40 mx-auto" />
+                                    <Skeleton className="h-4 w-32 mx-auto" />
+                                    <Skeleton className="h-3 w-48 mx-auto" />
+                                </div>
+                            ) : userInfo ? (
+                                <div className="space-y-3">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <h3 className="font-semibold text-gray-900 text-lg">
+                                            Sending to {userInfo.user_name}
+                                        </h3>
+                                        <Badge variant="outline" className="text-xs">
+                                            <Shield className="h-3 w-3 mr-1" />
+                                            Anonymous
+                                        </Badge>
+                                    </div>
+
+                                    {userInfo.short_bio && (
+                                        <p className="text-sm text-gray-600">
+                                            {userInfo.short_bio}
+                                        </p>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center py-2">
+                                    <AlertCircle className="h-5 w-5 text-gray-400 mr-2" />
+                                    <span className="text-sm text-gray-500">User information unavailable</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Error Alert */}
@@ -288,6 +282,15 @@ const SuccessScreen = ({ onSendAnother, onCreateLink, userName }) => {
                     <div className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 w-full" />
 
                     <CardContent className="p-8 text-center">
+                        {/* Logo in Success Screen - Centered and Reduced Size */}
+                        <div className="flex justify-center mb-4">
+                            <img
+                                src="/assets/images/logo/logo.png"
+                                alt="logo"
+                                className='w-[80px] object-contain'
+                            />
+                        </div>
+
                         <div className="flex justify-center mb-6">
                             <div className="relative">
                                 <div className="absolute inset-0 animate-ping bg-green-200 rounded-full" />
