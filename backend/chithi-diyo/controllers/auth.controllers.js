@@ -183,8 +183,8 @@ const checkLoginState = async (req, res) => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.CHITHI_DIYO_EMAIL_USER,
+    pass: process.env.CHITHI_DIYO_EMAIL_PASS,
   },
 });
 
@@ -218,11 +218,11 @@ const forgotPassword = async (req, res) => {
       });
 
       // Create reset link with token
-      const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      const resetLink = `${process.env.CHITHI_DIYO_FRONTEND_URL}/reset-password?token=${resetToken}`;
 
       // Send email with reset link
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: process.env.CHITHI_DIYO_EMAIL_USER,
         to: email,
         subject: "Password Reset Request",
         html: `

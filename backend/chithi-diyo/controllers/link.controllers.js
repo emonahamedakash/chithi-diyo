@@ -28,7 +28,7 @@ const createLink = async (req, res) => {
 
     while (true) {
       const randomPath = generateLinkId();
-      generatedLink = `${process.env.FRONTEND_URL}/sent-message/${randomPath}`;
+      generatedLink = `${process.env.CHITHI_DIYO_FRONTEND_URL}/sent-message/${randomPath}`;
       attempts++;
 
       if (!existingLinkSet.has(generatedLink)) {

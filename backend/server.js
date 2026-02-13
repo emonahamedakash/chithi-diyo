@@ -16,6 +16,8 @@ app.use(
 
       const allowedOrigins = [
         "http://localhost:5173",
+        "https://chithidiyo.dokanmanager.com",
+        "http://chithidiyo.dokanmanager.com"
       ];
 
       if (allowedOrigins.indexOf(origin) !== -1) {
